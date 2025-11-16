@@ -6,8 +6,8 @@ public class GameManager
 
     Fenster fenster = new Fenster();
     
-    static Spieler spieler = new Spieler();
-    public Picture spielerBody = spieler.spieler_body;
+    static Player player = new Player();
+    public Picture playerBody = player.player_body;
 
 
     public static void main(String[] args) {
@@ -26,7 +26,7 @@ public class GameManager
         
         // Setup Environment
 
-        spielerBody.move(100,0); // Move the bird to the required position
+        playerBody.move(100,0); // Move the bird to the required position
 
 
         
@@ -60,29 +60,93 @@ public class GameManager
 
 
     }
-    
+
+    private double tilt = 0; // keep track of current tilt
+    private double idleanimationCount = 0; // keep track of current idleanimationcount
+    boolean idleanimationSetting = false;
+    boolean goingUp = true;
+
+
     private void update() {
+        boolean left  = fenster.fenster.keyPressed('a');
+        boolean right = fenster.fenster.keyPressed('d');
+        boolean up    = fenster.fenster.keyPressed('w');
+        boolean down  = fenster.fenster.keyPressed('s');
 
-        spielerBody.turn(spielerBody.getCenterX(),spielerBody.getCenterY(),0.1);
+        // How tilt works -> If tilt is under the max limit, the sprite will rotate along its own axis to the correlated direction each loop. If it is above its limit, nothing will happen.
 
+        // Move and tilt left
+        if (left) {
+            playerBody.move(-10, 0);
+            if (tilt > -10) { // limit max tilt
+                playerBody.turn(playerBody.getCenterX(), playerBody.getCenterY(), -1);
+                tilt -= 1;
+            }
+        }
 
-        if (fenster.fenster.keyPressed('a')) {
+        // Move and tilt right
+        if (right) {
+            playerBody.move(10, 0);
+            if (tilt < 10) { // limit max tilt
+                playerBody.turn(playerBody.getCenterX(), playerBody.getCenterY(), 1);
+                tilt += 1;
+            }
+        }
 
-            spielerBody.move(-10, 0);
+        // Move and no tilt up
+        if (up) {
 
-        } if (fenster.fenster.keyPressed('d')) {
+            playerBody.move(0, -10);
 
-            spielerBody.move(10, 0);
+        }
 
-        } if (fenster.fenster.keyPressed('w')) {
+        // Move and no tilt down
+        if (down) {
 
-            spielerBody.move(0, -10);
-
-        } if (fenster.fenster.keyPressed('s')) {
-
-            spielerBody.move(0, 10);
+            playerBody.move(0, 10);
 
         } // Do not use "else if", as it will only allow one key-press per update loop (03.11)
+
+
+        // UNDO tilt. If left/right key is not being pressed and it higher than its lowest value, tilt is being lowered by 1 each loop.
+
+        if (!left && !right) {
+            if (tilt > 0) {
+                playerBody.turn(playerBody.getCenterX(), playerBody.getCenterY(), -1);
+                tilt -= 1;
+            } else if (tilt < 0) {
+                playerBody.turn(playerBody.getCenterX(), playerBody.getCenterY(), 1);
+                tilt += 1;
+            }
+        }
+
+
+
+
+        if (!left && !right && !up && !down) {
+
+            if (idleanimationSetting) {
+
+                if (goingUp) {
+                    idleanimationCount += 0.2;
+                    playerBody.move(0, -1);
+
+                    if (idleanimationCount >= 6) { // reached the top
+                        goingUp = false;
+                    }
+
+                } else {
+                    idleanimationCount -= 0.2;
+                    playerBody.move(0, 1);
+
+                    if (idleanimationCount <= 0) { // reached the bottom
+                        goingUp = true;
+                    }
+                }
+
+            }
+
+        }
 
     }
     
